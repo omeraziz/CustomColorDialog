@@ -20,6 +20,10 @@ namespace CustomColorDialogClient
         private TextBox textBoxA;
         private Label labelOutputColor;
         private Label label2;
+        private TextBox textBoxColor0;
+        private TextBox textBoxColor1;
+        private TextBox textBoxColor2;
+        private Label labelCustomColors;
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -66,71 +70,112 @@ namespace CustomColorDialogClient
             this.textBoxA = new System.Windows.Forms.TextBox();
             this.labelOutputColor = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.textBoxColor0 = new System.Windows.Forms.TextBox();
+            this.textBoxColor1 = new System.Windows.Forms.TextBox();
+            this.textBoxColor2 = new System.Windows.Forms.TextBox();
+            this.labelCustomColors = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(56, 56);
+            this.button1.Location = new System.Drawing.Point(100, 238);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(168, 88);
+            this.button1.Size = new System.Drawing.Size(336, 163);
             this.button1.TabIndex = 0;
             this.button1.Text = "Show Custom Color Dialog";
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // textBoxR
             // 
-            this.textBoxR.Location = new System.Drawing.Point(86, 12);
+            this.textBoxR.Location = new System.Drawing.Point(172, 22);
             this.textBoxR.Name = "textBoxR";
-            this.textBoxR.Size = new System.Drawing.Size(33, 20);
+            this.textBoxR.Size = new System.Drawing.Size(66, 31);
             this.textBoxR.TabIndex = 1;
             this.textBoxR.Text = "0";
             // 
             // textBoxG
             // 
-            this.textBoxG.Location = new System.Drawing.Point(125, 12);
+            this.textBoxG.Location = new System.Drawing.Point(250, 22);
             this.textBoxG.Name = "textBoxG";
-            this.textBoxG.Size = new System.Drawing.Size(33, 20);
+            this.textBoxG.Size = new System.Drawing.Size(66, 31);
             this.textBoxG.TabIndex = 2;
             this.textBoxG.Text = "0";
             // 
             // textBoxB
             // 
-            this.textBoxB.Location = new System.Drawing.Point(164, 12);
+            this.textBoxB.Location = new System.Drawing.Point(328, 22);
             this.textBoxB.Name = "textBoxB";
-            this.textBoxB.Size = new System.Drawing.Size(33, 20);
+            this.textBoxB.Size = new System.Drawing.Size(66, 31);
             this.textBoxB.TabIndex = 3;
             this.textBoxB.Text = "0";
             // 
             // textBoxA
             // 
-            this.textBoxA.Location = new System.Drawing.Point(203, 12);
+            this.textBoxA.Location = new System.Drawing.Point(406, 22);
             this.textBoxA.Name = "textBoxA";
-            this.textBoxA.Size = new System.Drawing.Size(33, 20);
+            this.textBoxA.Size = new System.Drawing.Size(66, 31);
             this.textBoxA.TabIndex = 4;
             this.textBoxA.Text = "0";
             // 
             // labelOutputColor
             // 
             this.labelOutputColor.AutoSize = true;
-            this.labelOutputColor.Location = new System.Drawing.Point(13, 180);
+            this.labelOutputColor.Location = new System.Drawing.Point(20, 428);
             this.labelOutputColor.Name = "labelOutputColor";
-            this.labelOutputColor.Size = new System.Drawing.Size(66, 13);
+            this.labelOutputColor.Size = new System.Drawing.Size(133, 25);
             this.labelOutputColor.TabIndex = 5;
             this.labelOutputColor.Text = "Output Color";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 15);
+            this.label2.Location = new System.Drawing.Point(6, 28);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(46, 13);
+            this.label2.Size = new System.Drawing.Size(89, 25);
             this.label2.TabIndex = 6;
             this.label2.Text = "R G B A";
             // 
+            // textBoxColor0
+            // 
+            this.textBoxColor0.Location = new System.Drawing.Point(12, 107);
+            this.textBoxColor0.Name = "textBoxColor0";
+            this.textBoxColor0.Size = new System.Drawing.Size(174, 31);
+            this.textBoxColor0.TabIndex = 7;
+            this.textBoxColor0.Text = "0";
+            // 
+            // textBoxColor1
+            // 
+            this.textBoxColor1.Location = new System.Drawing.Point(198, 107);
+            this.textBoxColor1.Name = "textBoxColor1";
+            this.textBoxColor1.Size = new System.Drawing.Size(174, 31);
+            this.textBoxColor1.TabIndex = 8;
+            this.textBoxColor1.Text = "0";
+            // 
+            // textBoxColor2
+            // 
+            this.textBoxColor2.Location = new System.Drawing.Point(386, 107);
+            this.textBoxColor2.Name = "textBoxColor2";
+            this.textBoxColor2.Size = new System.Drawing.Size(174, 31);
+            this.textBoxColor2.TabIndex = 9;
+            this.textBoxColor2.Text = "0";
+            // 
+            // labelCustomColors
+            // 
+            this.labelCustomColors.AutoSize = true;
+            this.labelCustomColors.Location = new System.Drawing.Point(24, 471);
+            this.labelCustomColors.Name = "labelCustomColors";
+            this.labelCustomColors.Size = new System.Drawing.Size(153, 25);
+            this.labelCustomColors.TabIndex = 10;
+            this.labelCustomColors.Text = "Custom Colors";
+            // 
             // Form1
             // 
-            this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(292, 222);
+            this.AutoScaleBaseSize = new System.Drawing.Size(10, 24);
+            this.ClientSize = new System.Drawing.Size(638, 590);
+            this.Controls.Add(this.labelCustomColors);
+            this.Controls.Add(this.textBoxColor2);
+            this.Controls.Add(this.textBoxColor1);
+            this.Controls.Add(this.textBoxColor0);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.labelOutputColor);
             this.Controls.Add(this.textBoxA);
@@ -159,7 +204,9 @@ namespace CustomColorDialogClient
         {
 
             Color initColor = Color.FromArgb(int.Parse(textBoxA.Text) % 256, int.Parse(textBoxR.Text) % 256, int.Parse(textBoxG.Text) % 256, int.Parse(textBoxB.Text) % 256);
-            CustomColorDialog colDlg = new CustomColorDialog(Handle, initColor);
+
+            int[] customColors = { int.Parse(textBoxColor0.Text), int.Parse(textBoxColor1.Text), int.Parse(textBoxColor2.Text) };
+            CustomColorDialog colDlg = new CustomColorDialog(Handle, initColor, 128, customColors);
             colDlg.IntialColor = initColor;
             bool f = colDlg.ShowDialog();
 
@@ -167,6 +214,16 @@ namespace CustomColorDialogClient
             {
                 labelOutputColor.Text = colDlg.SelectedColor.ToString();
                 labelOutputColor.BackColor = colDlg.SelectedColor;
+                customColors = colDlg.CustomColors;
+
+                string strCustomColors = string.Empty;
+                foreach (int cc in customColors)
+                {
+                    strCustomColors += cc.ToString() + "|";
+                }
+                strCustomColors.TrimEnd('|');
+
+                labelCustomColors.Text = strCustomColors;
             }
         
         }

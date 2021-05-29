@@ -41,7 +41,7 @@ namespace CustomCommonDialog
         public const Int32  EnableHook            = 0x00000010;
         public const Int32  EnableTemplate        = 0x00000020;
         public const Int32  EnableTemplatehandle  = 0x00000040;
-        public const Int32  SoliDcolor            = 0x00000080;
+        public const Int32  SolidColor            = 0x00000080;
         public const Int32  AnyColor              = 0x00000100;
     };
 
@@ -130,5 +130,8 @@ namespace CustomCommonDialog
 
         [DllImport("ComDlg32.dll", CharSet = CharSet.Unicode)]
         internal static extern bool ChooseColor( ref ChooseColor cc );
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        internal static extern UInt32 RegisterWindowMessage(StringBuilder lpString);
     }
 }

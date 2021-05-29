@@ -78,19 +78,19 @@ namespace AlphaSliderControl
 		{
             this.SuspendLayout();
 			// 
-            // AlphaSlider
+            // ctrl1DColorBar
 			// 
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
-            this.Margin = new System.Windows.Forms.Padding(0);
-            this.Name = "AlphaSlider";
-            this.Size = new System.Drawing.Size(60, 142);
+            //this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
+            //this.Margin = new System.Windows.Forms.Padding(0);
+            this.Name = "ctrl1DColorBar";
+            this.Size = new System.Drawing.Size(40, 264);
 			this.Resize += new System.EventHandler(this.ctrl1DColorBar_Resize);
 			this.Load += new System.EventHandler(this.ctrl1DColorBar_Load);
 			this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ctrl1DColorBar_MouseUp);
 			this.Paint += new System.Windows.Forms.PaintEventHandler(this.ctrl1DColorBar_Paint);
 			this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ctrl1DColorBar_MouseMove);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ctrl1DColorBar_MouseDown);
-            this.ResumeLayout(false);
+            //this.ResumeLayout(false);
 
 		}
 		#endregion

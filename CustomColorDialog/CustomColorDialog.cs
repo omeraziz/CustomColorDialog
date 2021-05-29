@@ -30,6 +30,9 @@ namespace CustomCommonDialog
         // final color value
         private System.Drawing.Color _initialColor = Color.FromArgb(255, Color.Black);   // Initialize with a solid black color
 
+        // COLOROKSTRING message code
+        private UInt32 _colorOKMessagecode = 0;
+
         /// <summary>
         /// Sets up the data structures necessary to display the CustomColorDialog
         /// </summary>
@@ -38,7 +41,7 @@ namespace CustomCommonDialog
             // create the ChooseColor structure to pass to WinAPI
             _cc.lStructSize = Marshal.SizeOf( _cc );
             _cc.lpfnHook = new CCHookProc(MyHookProc);								//hook function 
-            _cc.Flags = ChooseColorFlags.FullOpen | ChooseColorFlags.EnableHook | ChooseColorFlags.RGBInit;	//enable hook
+            _cc.Flags = ChooseColorFlags.FullOpen | ChooseColorFlags.EnableHook | ChooseColorFlags.RGBInit /* | ChooseColorFlags.SoliDcolor */;	//enable hook
             _cc.hwndOwner = handle;													//set the owner window
             Int32	temp = 0;
             int size = Marshal.SizeOf(temp);
@@ -55,6 +58,7 @@ namespace CustomCommonDialog
             //fill in the value to load custom colors with these values
             _cc.lpCustColors = CustColor;											//set the custom color buffer
 
+            _colorOKMessagecode = NativeMethods.RegisterWindowMessage(new StringBuilder("commdlg_ColorOK"));
 
             // create the container window to keep the alpha slider and text box controls
             _panelAlpha = new Panel();
@@ -66,22 +70,22 @@ namespace CustomCommonDialog
             _panelAlpha.Controls.Add(_labelAlpha);
             _panelAlpha.Controls.Add( _textAlpha );
 
-            _panelAlpha.Width = 34;
-            _panelAlpha.Height = 300;
+            _panelAlpha.BorderStyle = BorderStyle.None;
+            _panelAlpha.Width = 36;
+            _panelAlpha.Height = 300;//268;
 
-            _sliderAlpha.Location = new Point(5, 3);
-            _sliderAlpha.Width = 26;
-            _sliderAlpha.Height = 247;
+            _sliderAlpha.Height = 240;
+            _sliderAlpha.Dock = DockStyle.Fill;
 
             _labelAlpha.Height = 16;
-            _labelAlpha.Width = 36;
+            _labelAlpha.Width = 6;
             _labelAlpha.Text = "Alpha";
-            _labelAlpha.Location = new Point(0, 250);
+            _labelAlpha.Dock = DockStyle.Bottom;
 
             _textAlpha.Height = 16;
-            _textAlpha.Width  = 30;
+            _textAlpha.Width  = 10;
             _textAlpha.MaxLength = 3;
-            _textAlpha.Location = new Point(2, 272);    
+            _textAlpha.Dock = DockStyle.Bottom;
         }
 
         // Initialize the color. Alpha value in color will initialize alpha component.
@@ -92,11 +96,53 @@ namespace CustomCommonDialog
             _sliderAlpha.InitAlphaValue = _initialColor.A;
         }
 
+        public CustomColorDialog(IntPtr handle, Color initialColor, int[] customColor)
+            : this(handle)
+        {
+            IntialColor = initialColor;
+            _sliderAlpha.InitAlphaValue = _initialColor.A;
+
+            InitCustomColors(customColor);
+        }
+
         // Initialize the color. Additional alpha value will overwrite the alpha value specified in initialColor.
         public CustomColorDialog(IntPtr handle, Color initialColor, int initialAlphaValue)
             : this(handle, initialColor)
         {
             _sliderAlpha.InitAlphaValue = initialAlphaValue;
+        }
+
+        // Initialize the color. Additional alpha value will overwrite the alpha value specified in initialColor.
+        public CustomColorDialog(IntPtr handle, Color initialColor, int initialAlphaValue, int[] customColor)
+            : this(handle, initialColor, initialAlphaValue)
+        {
+            InitCustomColors(customColor);
+        }
+
+        void InitCustomColors(int[] customColor)
+        {
+            int customColorCount = customColor.GetLength(0);
+            int minCustomColorcount = Math.Min(16, customColorCount);
+
+            for (int i = 0; i < minCustomColorcount; i++)
+            {
+                _customColors[i] = customColor[i];
+            }
+
+            Int32 temp = 0;
+            int size = Marshal.SizeOf(temp);
+            IntPtr CustColor = Marshal.AllocCoTaskMem(16 * size);
+
+            int cnt = 0;
+            for (int i = 0; i < (16 * size); i += size)
+            {
+                IntPtr ptr = (IntPtr)(CustColor.ToInt32() + i);
+                Marshal.WriteInt32(ptr, _customColors[cnt]);
+                cnt++;
+            }
+
+            //fill in the value to load custom colors with these values
+            _cc.lpCustColors = CustColor;											//set the custom color buffer
         }
 
         /// <summary>
@@ -116,7 +162,11 @@ namespace CustomCommonDialog
             _cc.rgbResult = ColorToCOLORREF(_initialColor);
             _sliderAlpha.InitAlphaValue = _initialColor.A;
             
-            return NativeMethods.ChooseColor( ref _cc );
+            bool result = NativeMethods.ChooseColor( ref _cc );
+
+            Marshal.Copy(_cc.lpCustColors, _customColors, 0, 16);
+
+            return result;
         }
 
         /// <summary>
@@ -151,6 +201,41 @@ namespace CustomCommonDialog
         /// <param name="lParam">mess-specific parameter data</param>
         /// <returns></returns>
 
+const UInt16 WM_CTLCOLORMSGBOX = 0x132;
+const UInt16 WM_CTLCOLOREDIT = 0x133;
+const UInt16 WM_CTLCOLORLISTBOX = 0x134;
+const UInt16 WM_CTLCOLORBTN = 0x135;
+const UInt16 WM_CTLCOLORDLG = 0x136;
+const UInt16 WM_CTLCOLORSCROLLBAR = 0x137;
+const UInt16 WM_CTLCOLORSTATIC = 0x138;
+
+const UInt16 WM_DESTROY = 0x02;
+const UInt16 WM_MOVE = 0x03;
+const UInt16 WM_SIZE = 0x05;
+const UInt16 WM_ACTIVATE = 0x06;
+const UInt16 WM_SETFOCUS = 0x07;
+const UInt16 WM_KILLFOCUS = 0x08;
+
+const UInt16 WM_CLOSE = 0x10;
+const UInt16 WM_QUIT = 0x12;
+const UInt16 WM_SETCURSOR = 0x20;
+const UInt16 WM_WINDOWPOSCHANGING = 0x46;
+const UInt16 WM_WINDOWPOSCHANGED = 0x47;
+
+const UInt16 WM_MOUSEFIRST = 0x200;
+const UInt16 WM_MOUSEMOVE = 0x200;
+const UInt16 WM_LBUTTONDOWN = 0x201;
+const UInt16 WM_LBUTTONUP = 0x202;
+const UInt16 WM_LBUTTONDBLCLK = 0x203;
+const UInt16 WM_RBUTTONDOWN = 0x204;
+const UInt16 WM_RBUTTONUP = 0x205;
+const UInt16 WM_RBUTTONDBLCLK = 0x206;
+const UInt16 WM_MBUTTONDOWN = 0x207;
+const UInt16 WM_MBUTTONUP = 0x208;
+const UInt16 WM_MBUTTONDBLCLK = 0x209;
+const UInt16 WM_MOUSEWHEEL = 0x20A;
+const UInt16 WM_MOUSEHWHEEL = 0x20E;
+
         
         public IntPtr MyHookProc( IntPtr hWnd, UInt16 msg, Int32 wParam, Int32 lParam )
         {
@@ -167,15 +252,89 @@ namespace CustomCommonDialog
                 _textAlpha.Text = wParam.ToString();
             }
                 
+            if (msg == _colorOKMessagecode)
+            {
+                Trace.WriteLine("COLOROKSTRNG: " + wParam.ToString());
+
+            }
+
             // Behaviour is dependant on the message received
             switch( msg )
             {
                     // We're not interested in every possible message; just return a NULL for those we don't care about
                 default:
                 {
+                        Trace.WriteLine("Unhandled: " + msg.ToString("X"));
                     return IntPtr.Zero;
                 }
+                case WM_DESTROY:
+                    System.Diagnostics.Trace.WriteLine("WM_DESTROY");
+                    On_WM_DESTROY_Event(hWnd, wParam, lParam);
+                    break;
+                case WM_MOVE:
+                case WM_ACTIVATE:
+                case WM_SETFOCUS:
+                case WM_KILLFOCUS:
+                case 0x20:
+                case 0x46:
+                case 0x47:
+                case 0x7F:
+                case 0x82:
+                case 0x84:
+                case 0x86:
+                case 0x90:
+                case 0xA0:
+                case 0x111:
+                case 0x281:
+                case 0x282:
+                    break;
             
+                case WM_MOUSEMOVE:
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONUP:
+                case WM_LBUTTONDBLCLK:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONUP:
+                case WM_RBUTTONDBLCLK:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONUP:
+                case WM_MBUTTONDBLCLK:
+                case WM_MOUSEWHEEL:
+                case WM_MOUSEHWHEEL:
+                    break;
+
+                case WM_CTLCOLORMSGBOX:
+                    //System.Diagnostics.Trace.WriteLine("WM_CTLCOLORMSGBOX");
+                    break;
+                case WM_CTLCOLOREDIT:
+                    System.Diagnostics.Trace.WriteLine("WM_CTLCOLOREDIT");
+                    break;
+                case WM_CTLCOLORLISTBOX:
+                    //System.Diagnostics.Trace.WriteLine("WM_CTLCOLORLISTBOX");
+                    break;
+                case WM_CTLCOLORBTN:
+                    //System.Diagnostics.Trace.WriteLine("WM_CTLCOLORBTN");
+                    //On_WM_CTLCOLORBTN_Event(hWnd, wParam, lParam);
+                    break;
+                case WM_CTLCOLORDLG:
+                    System.Diagnostics.Trace.WriteLine("WM_CTLCOLORDLG");
+                    break;
+                case WM_CTLCOLORSCROLLBAR:
+                    System.Diagnostics.Trace.WriteLine("WM_CTLCOLORSCROLLBAR");
+                    break;
+                case WM_CTLCOLORSTATIC:
+                    System.Diagnostics.Trace.WriteLine("WM_CTLCOLORSTATIC");    //?
+                    break;
+
+                case 0xC115:
+                    return IntPtr.Zero;
+
+                case WM_CLOSE:
+                    System.Diagnostics.Trace.WriteLine("WM_CLOSE");
+                    break;
+                case WM_QUIT:
+                    System.Diagnostics.Trace.WriteLine("WM_QUIT");
+                    break;
 
                 // WM_INITDIALOG - at this point the ChooseColorDialog exists, so we pull the user-supplied control
                 // into the FileOpenDialog now, using the SetParent API.
@@ -239,6 +398,19 @@ namespace CustomCommonDialog
                     return IntPtr.Zero;
                 }
             }
+
+            return IntPtr.Zero;
+        }
+
+        private void On_WM_DESTROY_Event(IntPtr hWnd, int wParam, int lParam)
+        {
+            //ChooseColor cc = (ChooseColor)Marshal.PtrToStructure(ipNotify, typeof(ChooseColor));
+            System.Diagnostics.Trace.WriteLine("On_WM_DESTROY_Event " + hWnd.ToString("X") + " wP: " + wParam.ToString("x") + " lP: " + lParam.ToString("x"));
+        }
+
+        private void On_WM_CTLCOLORBTN_Event(IntPtr hWnd, int wParam, int lParam)
+        {
+            System.Diagnostics.Trace.WriteLine("On_WM_CTLCOLORBTN_Event " + hWnd.ToString("X") + " wP: " + wParam.ToString("x") + " lP: " + lParam.ToString("x"));
         }
 
         /// <summary>
@@ -289,6 +461,10 @@ namespace CustomCommonDialog
             }
         }
 
+        public int[] CustomColors
+        {
+            get { return _customColors; }
+        }
 
         public System.Drawing.Color IntialColor
         {
