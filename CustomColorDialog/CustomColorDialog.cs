@@ -5,252 +5,338 @@ using System.Drawing;
 using System.Diagnostics;
 using AlphaSliderControl;
 using System.Windows.Forms;
-	
+    
 
 namespace CustomCommonDialog
 {
-	/// <summary>
-	/// Summary description for CustomColorDialog.
-	/// </summary>
-	public class CustomColorDialog : IDisposable
-	{
-		// the CHOOSECOLOR structure, used to control the appearance and behaviour of the OpenFileDialog
-		private ChooseColor							_cc;
-		// the slider control to change the alpha values
-		private AlphaSlider							_sliderAlpha;
-		// the textbox to show current alpha value
-		private TextBox								_textAlpha;
-		// the panel to contain the slider and text box
-		private Panel								_panelAlpha;
-		// final color value
-		private System.Drawing.Color _color;
+    /// <summary>
+    /// Summary description for CustomColorDialog.
+    /// </summary>
+    public class CustomColorDialog : IDisposable
+    {
+        // the CHOOSECOLOR structure, used to control the appearance and behaviour of the OpenFileDialog
+        private ChooseColor							_cc;
+        // the slider control to change the alpha values
+        private AlphaSlider							_sliderAlpha;
+        // the textbox to show current alpha value
+        private TextBox								_textAlpha;
+        // The label to show 'Alpha'
+        private Label _labelAlpha;
+        // the panel to contain the slider and text box
+        private Panel								_panelAlpha;
 
-		/// <summary>
-		/// Sets up the data structures necessary to display the CustomColorDialog
-		/// </summary>
-		public CustomColorDialog( IntPtr	handle )
-		{
-			// create the ChooseColor structure to pass to WinAPI
-			_cc.lStructSize = Marshal.SizeOf( _cc );
-			_cc.lpfnHook = new CCHookProc(MyHookProc);								//hook function 
-			_cc.Flags = ChooseColorFlags.FullOpen | ChooseColorFlags.EnableHook;	//enable hook
-			_cc.hwndOwner = handle;													//set the owner window
-			Int32	temp = 0;
-			IntPtr CustColor = Marshal.AllocCoTaskMem( 16 * Marshal.SizeOf(temp));	
+        private int[] _customColors = new int[] { 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff, 0xffffff };
 
-			//fill in the value to load custom colors with these values
-			_cc.lpCustColors = CustColor;											//set the custom color buffer
+        // final color value
+        private System.Drawing.Color _initialColor = Color.FromArgb(255, Color.Black);   // Initialize with a solid black color
+
+        /// <summary>
+        /// Sets up the data structures necessary to display the CustomColorDialog
+        /// </summary>
+        public CustomColorDialog( IntPtr	handle )
+        {
+            // create the ChooseColor structure to pass to WinAPI
+            _cc.lStructSize = Marshal.SizeOf( _cc );
+            _cc.lpfnHook = new CCHookProc(MyHookProc);								//hook function 
+            _cc.Flags = ChooseColorFlags.FullOpen | ChooseColorFlags.EnableHook | ChooseColorFlags.RGBInit;	//enable hook
+            _cc.hwndOwner = handle;													//set the owner window
+            Int32	temp = 0;
+            int size = Marshal.SizeOf(temp);
+            IntPtr CustColor = Marshal.AllocCoTaskMem( 16 * size);
+
+            int cnt = 0;
+            for (int i = 0; i < (16 * size); i += size)
+            {
+                IntPtr ptr = (IntPtr)(CustColor.ToInt32() + i);
+                Marshal.WriteInt32(ptr, _customColors[cnt]);
+                cnt++;
+            }
+
+            //fill in the value to load custom colors with these values
+            _cc.lpCustColors = CustColor;											//set the custom color buffer
 
 
-			// create the container window to keep the alpha slider and text box controls
-			_panelAlpha = new Panel();
-			_sliderAlpha = new AlphaSlider();
-			_textAlpha	= new TextBox();
+            // create the container window to keep the alpha slider and text box controls
+            _panelAlpha = new Panel();
+            _sliderAlpha = new AlphaSlider();
+            _textAlpha	= new TextBox();
+            _labelAlpha = new Label();
 
-			_panelAlpha.Controls.Add( _sliderAlpha );
-			_panelAlpha.Controls.Add( _textAlpha );
+            _panelAlpha.Controls.Add( _sliderAlpha );
+            _panelAlpha.Controls.Add(_labelAlpha);
+            _panelAlpha.Controls.Add( _textAlpha );
 
-			_panelAlpha.BorderStyle = BorderStyle.None;
-			_panelAlpha.Width = 25;
-			_panelAlpha.Height = 268;
+            _panelAlpha.Width = 34;
+            _panelAlpha.Height = 300;
 
-			_sliderAlpha.Height = 240;
-			_sliderAlpha.Dock = DockStyle.Fill;
+            _sliderAlpha.Location = new Point(5, 3);
+            _sliderAlpha.Width = 26;
+            _sliderAlpha.Height = 247;
 
-			_textAlpha.Height = 50;
-			_textAlpha.Width  = 10;
-			_textAlpha.Dock = DockStyle.Bottom;
+            _labelAlpha.Height = 16;
+            _labelAlpha.Width = 36;
+            _labelAlpha.Text = "Alpha";
+            _labelAlpha.Location = new Point(0, 250);
 
-		}
+            _textAlpha.Height = 16;
+            _textAlpha.Width  = 30;
+            _textAlpha.MaxLength = 3;
+            _textAlpha.Location = new Point(2, 272);    
+        }
 
-		/// <summary>
-		/// The finalizer will release the unmanaged memory, if I should forget to call Dispose
-		/// </summary>
-		~CustomColorDialog()
-		{
-			Dispose( false );
-		}
+        // Initialize the color. Alpha value in color will initialize alpha component.
+        public CustomColorDialog( IntPtr handle, Color initialColor)
+            : this(handle)
+        {
+            IntialColor = initialColor;
+            _sliderAlpha.InitAlphaValue = _initialColor.A;
+        }
 
-		/// <summary>
-		/// Display the ChooseColor dialog and allow user interaction
-		/// </summary>
-		/// <returns>true if the user clicked OK, false if they clicked cancel (or close)</returns>
-		public bool Show()
-		{
-			return NativeMethods.ChooseColor( ref _cc );
-		}
+        // Initialize the color. Additional alpha value will overwrite the alpha value specified in initialColor.
+        public CustomColorDialog(IntPtr handle, Color initialColor, int initialAlphaValue)
+            : this(handle, initialColor)
+        {
+            _sliderAlpha.InitAlphaValue = initialAlphaValue;
+        }
 
-		/// <summary>
-		/// The hook procedure for window messages generated by the FileOpenDialog
-		/// </summary>
-		/// <param name="hWnd">the handle of the window at which this message is targeted</param>
-		/// <param name="msg">the message identifier</param>
-		/// <param name="wParam">message-specific parameter data</param>
-		/// <param name="lParam">mess-specific parameter data</param>
-		/// <returns></returns>
+        /// <summary>
+        /// The finalizer will release the unmanaged memory, if I should forget to call Dispose
+        /// </summary>
+        ~CustomColorDialog()
+        {
+            Dispose( false );
+        }
 
-		
-		public IntPtr MyHookProc( IntPtr hWnd, UInt16 msg, Int32 wParam, Int32 lParam )
-		{
-			// return if invalid window
-			if (hWnd == IntPtr.Zero)
-				return IntPtr.Zero;
+        /// <summary>
+        /// Display the ChooseColor dialog and allow user interaction
+        /// </summary>
+        /// <returns>true if the user clicked OK, false if they clicked cancel (or close)</returns>
+        public bool ShowDialog()
+        {
+            _cc.rgbResult = ColorToCOLORREF(_initialColor);
+            _sliderAlpha.InitAlphaValue = _initialColor.A;
+            
+            return NativeMethods.ChooseColor( ref _cc );
+        }
 
-			//the message passed by AlphaSlider control
-			if( msg == 0x5050 )
-			{
-				//update the text box value
-				Trace.WriteLine(wParam);
-				_textAlpha.Text = wParam.ToString();
-			}
-				
+        /// <summary>
+        /// Convert color to COLORREF(int:0x00bbggrr)
+        /// </summary>
+        private int ColorToCOLORREF(Color c)
+        {
+            int cr = c.B;
+            cr = ((cr << 8) | c.G);
+            cr = ((cr << 8) | c.R);
+            return cr;
+        }
 
-			//this is total hack
-			//I could not find the message posted by ChooColor dialog when user presses OK
-			//this I found the last message sent and using it
-			//TODO: find the correct message as documented i.e. COLOROKSTRING 
-			if( msg == 0xC072 /*==COLOROKSTRING*/)
-			{
-				//get the current ChooseColor structure
-				IntPtr ipNotify = new IntPtr( lParam );
-				ChooseColor cc = (ChooseColor)Marshal.PtrToStructure( ipNotify, typeof(ChooseColor) );
-				IntPtr hWndParent = NativeMethods.GetParent( hWnd );
+        /// <summary>
+        /// Convert COLORREF(int:0x00bbggrr) to Color
+        /// </summary>
+        /// <param name="cr">give me COLORREF</param>
+        private Color COLORREFToColor(int cr)
+        {
+            int R = (cr & 0xFF);
+            int G = ((cr >> 8) & 0xFF);
+            int B = ((cr >> 16) & 0xFF);
+            return Color.FromArgb(R, G, B);
+        }
 
-				//extract the RGB values from structure
-				int R = (char )(cc.rgbResult);
-				int G = (char )(((int)(cc.rgbResult)) >> 8);
-				int B = (char )(cc.rgbResult >> 16);
+        /// <summary>
+        /// The hook procedure for window messages generated by the FileOpenDialog
+        /// </summary>
+        /// <param name="hWnd">the handle of the window at which this message is targeted</param>
+        /// <param name="msg">the message identifier</param>
+        /// <param name="wParam">message-specific parameter data</param>
+        /// <param name="lParam">mess-specific parameter data</param>
+        /// <returns></returns>
 
-				//the typecase problem 
-				//TODO: write the C# version of GetRValue, GetGValue, GetBValue
-				if( R > 256 )
-					R = R/257;
+        
+        public IntPtr MyHookProc( IntPtr hWnd, UInt16 msg, Int32 wParam, Int32 lParam )
+        {
+            Trace.WriteLine("MyHookProc: " + msg.ToString("X"));
+            // return if invalid window
+            if (hWnd == IntPtr.Zero)
+                return IntPtr.Zero;
 
-				if( G > 256 )
-					G /= 257;
+            //the message passed by AlphaSlider control
+            if( msg == 0x5050 )
+            {
+                //update the text box value
+                Trace.WriteLine("AA: " + wParam.ToString());
+                _textAlpha.Text = wParam.ToString();
+            }
+                
+            // Behaviour is dependant on the message received
+            switch( msg )
+            {
+                    // We're not interested in every possible message; just return a NULL for those we don't care about
+                default:
+                {
+                    return IntPtr.Zero;
+                }
+            
 
-				//get the alpha value from slider control
-				_color = Color.FromArgb(_sliderAlpha.Value,R, G, B);
-				Trace.WriteLine(_color);
-			}
+                // WM_INITDIALOG - at this point the ChooseColorDialog exists, so we pull the user-supplied control
+                // into the FileOpenDialog now, using the SetParent API.
+                case WindowMessage.InitDialog:
+                {
+                    //set the parent window of slider control to recieve change in value messages
+                    _sliderAlpha.SetParent(hWnd);
 
-			// Behaviour is dependant on the message received
-			switch( msg )
-			{
-					// We're not interested in every possible message; just return a NULL for those we don't care about
-				default:
-				{
-					return IntPtr.Zero;
-				}
-			
+                    //increase the width of the default dialog box
+                    //place the slider and text box controls on the right most
+                    POINT topLeft = new POINT();
+                    POINT bottomRight = new POINT();
+                    IntPtr ipNotify = new IntPtr( lParam );
+                    ChooseColor cc = (ChooseColor)Marshal.PtrToStructure( ipNotify, typeof(ChooseColor) );
+                    IntPtr hWndParent = NativeMethods.GetParent( hWnd );
+                    NativeMethods.SetParent( _panelAlpha.Handle, hWnd);
+                    RECT rc = new RECT();
+                    NativeMethods.GetWindowRect( hWnd, ref rc );
+                    topLeft.X = rc.right;
+                    topLeft.Y = rc.top;
+                    NativeMethods.ScreenToClient( hWnd, ref topLeft );
+                    bottomRight.X = rc.right;
+                    bottomRight.Y = rc.bottom;
+                    NativeMethods.ScreenToClient( hWnd, ref bottomRight );
 
-				// WM_INITDIALOG - at this point the ChooseColorDialog exists, so we pull the user-supplied control
-				// into the FileOpenDialog now, using the SetParent API.
-				case WindowMessage.InitDialog:
-				{
-					//set the parent window of slider control to recieve change in value messages
-					_sliderAlpha.SetParent(hWnd);
+                    Rectangle rcClient = _panelAlpha.ClientRectangle;
+                    NativeMethods.MoveWindow( hWnd, rc.left, rc.top, bottomRight.X+rcClient.Width+10, bottomRight.Y+28, true );
+                    
+                    return IntPtr.Zero;
+                }
+                    // WM_SIZE - the OpenFileDialog has been resized, so we'll resize the content and user-supplied
+                    // panel to fit nicely
+                case WindowMessage.Size:
+                {
+                    PlaceCustomControls( hWnd );
+                    return IntPtr.Zero;
+                }
 
-					//increase the width of the default dialog box
-					//place the slider and text box controls on the right most
-					POINT topLeft = new POINT();
-					POINT bottomRight = new POINT();
-					IntPtr ipNotify = new IntPtr( lParam );
-					ChooseColor cc = (ChooseColor)Marshal.PtrToStructure( ipNotify, typeof(ChooseColor) );
-					IntPtr hWndParent = NativeMethods.GetParent( hWnd );
-					NativeMethods.SetParent( _panelAlpha.Handle, hWnd);
-					RECT rc = new RECT();
-					NativeMethods.GetWindowRect( hWnd, ref rc );
-					topLeft.X = rc.right;
-					topLeft.Y = rc.top;
-					NativeMethods.ScreenToClient( hWnd, ref topLeft );
-					bottomRight.X = rc.right;
-					bottomRight.Y = rc.bottom;
-					NativeMethods.ScreenToClient( hWnd, ref bottomRight );
+                case 0xC072:
+                case WindowMessage.ColorOK:
+                {
+                    //get the current ChooseColor structure
+                    IntPtr ipNotify = new IntPtr(lParam);
+                    ChooseColor cc = (ChooseColor)Marshal.PtrToStructure(ipNotify, typeof(ChooseColor));
+                    IntPtr hWndParent = NativeMethods.GetParent(hWnd);
 
-					Rectangle rcClient = _panelAlpha.ClientRectangle;
-					NativeMethods.MoveWindow( hWnd, rc.left, rc.top, bottomRight.X+rcClient.Width+10, bottomRight.Y+28, true );
-					
-					return IntPtr.Zero;
-				}
-					// WM_SIZE - the OpenFileDialog has been resized, so we'll resize the content and user-supplied
-					// panel to fit nicely
-				case WindowMessage.Size:
-				{
-					PlaceCustomControls( hWnd );
-					return IntPtr.Zero;
-				}
+                    //get the alpha value from slider control
+                    //
+                    int outAlpha = _sliderAlpha.Value;
+                    System.Drawing.Color color;
+                    if (int.TryParse(_textAlpha.Text, out outAlpha) == true)
+                    {
+                        color = Color.FromArgb(outAlpha, COLORREFToColor(cc.rgbResult));
+                    }
+                    else
+                    {
+                        color = Color.FromArgb(_sliderAlpha.Value, COLORREFToColor(cc.rgbResult));
+                    }
+                     
+                    Trace.WriteLine("One " + color.ToString());
+                    return IntPtr.Zero;
+                }
+            }
+        }
 
-			}
-		}
+        /// <summary>
+        /// Layout the content of the ChooseColorDialog, according to the overall size of the dialog
+        /// </summary>
+        /// <param name="hWnd">handle of window that received the WM_SIZE message</param>
+        private void PlaceCustomControls( IntPtr hWnd )
+        {
+            IntPtr hWndParent = NativeMethods.GetParent( hWnd );
+            NativeMethods.SetParent( _panelAlpha.Handle, hWnd);
+            RECT rc = new RECT();
+            NativeMethods.GetWindowRect( hWnd, ref rc );
+            POINT topLeft;
+            topLeft.X = rc.right;
+            topLeft.Y = rc.top;
+            NativeMethods.ScreenToClient( hWnd, ref topLeft );
+            POINT bottomRight;
+            bottomRight.X = rc.right;
+            bottomRight.Y = rc.bottom;
+            NativeMethods.ScreenToClient( hWnd, ref bottomRight );
 
-		/// <summary>
-		/// Layout the content of the ChooseColorDialog, according to the overall size of the dialog
-		/// </summary>
-		/// <param name="hWnd">handle of window that received the WM_SIZE message</param>
-		private void PlaceCustomControls( IntPtr hWnd )
-		{
-			IntPtr hWndParent = NativeMethods.GetParent( hWnd );
-			NativeMethods.SetParent( _panelAlpha.Handle, hWnd);
-			RECT rc = new RECT();
-			NativeMethods.GetWindowRect( hWnd, ref rc );
-			POINT topLeft;
-			topLeft.X = rc.right;
-			topLeft.Y = rc.top;
-			NativeMethods.ScreenToClient( hWnd, ref topLeft );
-			POINT bottomRight;
-			bottomRight.X = rc.right;
-			bottomRight.Y = rc.bottom;
-			NativeMethods.ScreenToClient( hWnd, ref bottomRight );
+            Rectangle rcClient = _panelAlpha.ClientRectangle;// .ClientRectangle();
 
-			Rectangle rcClient = _panelAlpha.ClientRectangle;// .ClientRectangle();
+            NativeMethods.MoveWindow( _panelAlpha.Handle, rc.right-rc.left-rcClient.Width-10, 0, rcClient.Width, rcClient.Height, true );
+        }
 
-			NativeMethods.MoveWindow( _panelAlpha.Handle, rc.right-rc.left-rcClient.Width-10, 0, rcClient.Width, rcClient.Height, true );
-		}
+        /// <summary>
+        /// returns the path currently selected by the user inside the OpenFileDialog
+        /// </summary>
+        public System.Drawing.Color SelectedColor
+        {
+            get
+            {
+                //return _color;//Marshal.PtrToStringUni( _fileNameBuffer );
+                int outAlpha;
+                if (int.TryParse(_textAlpha.Text, out outAlpha) == true)
+                {
+                    if (outAlpha > 256)
+                        outAlpha = 255;
+                    else if (outAlpha < 0)
+                        outAlpha = 0;
+                    return Color.FromArgb(outAlpha, COLORREFToColor(_cc.rgbResult));
+            }
+                else
+                {
+                    return Color.FromArgb(_sliderAlpha.Value, COLORREFToColor(_cc.rgbResult));
+                }
+            }
+        }
 
-		/// <summary>
-		/// returns the path currently selected by the user inside the OpenFileDialog
-		/// </summary>
-		public System.Drawing.Color SelectedColor
-		{
-			get
-			{
-				return _color;//Marshal.PtrToStringUni( _fileNameBuffer );
-			}
-		}
 
-		public System.Drawing.Color IntialColor
-		{
-			get
-			{
-				return IntialColor;
-			}
-			set
-			{
-				IntialColor = value;
-			}
-		}
+        public System.Drawing.Color IntialColor
+        {
+            get
+            {
+                return _initialColor;
+            }
+            set
+            {
+                _initialColor = value;
+            }
+        }
 
-		#region IDisposable Members
+        /// <summary>
+        /// Initialize  Alpha (transparent) Values: 0-255
+        /// </summary>
+        public int InitAlphaValue
+        {
+            get
+            {
+                return _sliderAlpha.InitAlphaValue;
+            }
+            set
+            {
+                _sliderAlpha.InitAlphaValue = value;
+            }
+        }
 
-		public void Dispose()
-		{
-			Dispose( true );
-		}
+        #region IDisposable Members
 
-		/// <summary>
-		/// Free any unamanged memory used by this instance of OpenFileDialog
-		/// </summary>
-		/// <param name="disposing">true if called by Dispose, false otherwise</param>
-		public void Dispose( bool disposing )
-		{
-			if( disposing )
-			{
-				GC.SuppressFinalize( this );
-			}
+        public void Dispose()
+        {
+            Dispose( true );
+        }
 
-		}
+        /// <summary>
+        /// Free any unamanged memory used by this instance of OpenFileDialog
+        /// </summary>
+        /// <param name="disposing">true if called by Dispose, false otherwise</param>
+        public void Dispose( bool disposing )
+        {
+            if( disposing )
+            {
+                GC.SuppressFinalize( this );
+            }
 
-		#endregion
-	}
+        }
+
+        #endregion
+    }
 }

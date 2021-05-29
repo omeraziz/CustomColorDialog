@@ -33,6 +33,7 @@ namespace AlphaSliderControl
 		//	Slider properties
 		private int			m_iMarker_Start_Y = 0;
 		private bool		m_bDragging = false;
+        private int mInitAlphaValue = 255;
 
 		//	These variables keep track of how to fill in the content inside the box;
 
@@ -75,17 +76,21 @@ namespace AlphaSliderControl
 		/// </summary>
 		private void InitializeComponent()
 		{
+            this.SuspendLayout();
 			// 
-			// ctrl1DColorBar
+            // AlphaSlider
 			// 
-			this.Name = "ctrl1DColorBar";
-			this.Size = new System.Drawing.Size(40, 264);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
+            this.Margin = new System.Windows.Forms.Padding(0);
+            this.Name = "AlphaSlider";
+            this.Size = new System.Drawing.Size(60, 142);
 			this.Resize += new System.EventHandler(this.ctrl1DColorBar_Resize);
 			this.Load += new System.EventHandler(this.ctrl1DColorBar_Load);
 			this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ctrl1DColorBar_MouseUp);
 			this.Paint += new System.Windows.Forms.PaintEventHandler(this.ctrl1DColorBar_Paint);
 			this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ctrl1DColorBar_MouseMove);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ctrl1DColorBar_MouseDown);
+            this.ResumeLayout(false);
 
 		}
 		#endregion
@@ -229,13 +234,29 @@ namespace AlphaSliderControl
 			}
 		}
 
+        /// <summary>
+        /// Inicjalizacja kana≥u Alpha (przeüroczystoúci) Wartoúci: 0-255
+        /// </summary>
+        public int InitAlphaValue
+        {
+            get
+            {
+                return mInitAlphaValue;
+            }
+            set
+            {
+                mInitAlphaValue = value;
+                nValue = mInitAlphaValue;
+            }
+        }
+
 		#endregion
 
 		#region Private Methods
 
-		private int nTickWidth = 8;
-		private int nTickHeight = 4;
-		private int nTickMargin = 2;
+        private int nTickWidth = 12;
+        private int nTickHeight = 6;
+        private int nTickMargin = 3;
 
 		/// <summary>
 		/// Redraws the background over the slider area on both sides of the control
@@ -262,12 +283,20 @@ namespace AlphaSliderControl
 		/// is performed to determine is drawing is really neccessary.</param>
 		private void DrawSlider(int position, bool Unconditional)
 		{
+            double pos1, val1;
 			if( Unconditional )
-				position = ((position*this.Height-(nTickHeight*2))/(nMaximum-nMinimum));
-			//else
-			nValue = ((position*(nMaximum-nMinimum))/(this.Height-(nTickHeight*2)));
+            {
+                pos1 = (double)((double)(position * (this.Height - (nTickHeight * 2))) / (double)(nMaximum - nMinimum));
+                position = (int)pos1; //Round(pos1);
+                val1 = (double)((double)(pos1 * (nMaximum - nMinimum)) / (double)(this.Height - (nTickHeight * 2)));
+            }
+            else
+            {
+                val1 = (double)((double)(position * (nMaximum - nMinimum)) / (double)(this.Height - (nTickHeight * 2)));
+            }
+            nValue = Round(val1);
 
-			Trace.WriteLine(nValue);
+            Trace.WriteLine("Slider A: " +  nValue.ToString());
 			
 			if ( position < nTickHeight ) 
 				position = nTickHeight;
