@@ -1,29 +1,30 @@
-Microsoft Visual Studio Solution File, Format Version 8.00
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomColorDialog", "CustomColorDialog\CustomColorDialog.csproj", "{B4359A7D-B870-43E9-B102-4AA374893C11}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomColorDialogClient", "CustomColorDialogClient\CustomColorDialogClient.csproj", "{51637C97-292A-47E4-9662-A8B732079244}"
 	ProjectSection(ProjectDependencies) = postProject
+		{B4359A7D-B870-43E9-B102-4AA374893C11} = {B4359A7D-B870-43E9-B102-4AA374893C11}
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(SolutionConfiguration) = preSolution
-		Debug = Debug
-		Release = Release
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ProjectConfiguration) = postSolution
-		{B4359A7D-B870-43E9-B102-4AA374893C11}.Debug.ActiveCfg = Debug|.NET
-		{B4359A7D-B870-43E9-B102-4AA374893C11}.Debug.Build.0 = Debug|.NET
-		{B4359A7D-B870-43E9-B102-4AA374893C11}.Release.ActiveCfg = Release|.NET
-		{B4359A7D-B870-43E9-B102-4AA374893C11}.Release.Build.0 = Release|.NET
-		{51637C97-292A-47E4-9662-A8B732079244}.Debug.ActiveCfg = Debug|.NET
-		{51637C97-292A-47E4-9662-A8B732079244}.Debug.Build.0 = Debug|.NET
-		{51637C97-292A-47E4-9662-A8B732079244}.Release.ActiveCfg = Release|.NET
-		{51637C97-292A-47E4-9662-A8B732079244}.Release.Build.0 = Release|.NET
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4359A7D-B870-43E9-B102-4AA374893C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4359A7D-B870-43E9-B102-4AA374893C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4359A7D-B870-43E9-B102-4AA374893C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4359A7D-B870-43E9-B102-4AA374893C11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51637C97-292A-47E4-9662-A8B732079244}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51637C97-292A-47E4-9662-A8B732079244}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51637C97-292A-47E4-9662-A8B732079244}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51637C97-292A-47E4-9662-A8B732079244}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-	EndGlobalSection
-	GlobalSection(ExtensibilityAddIns) = postSolution
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
