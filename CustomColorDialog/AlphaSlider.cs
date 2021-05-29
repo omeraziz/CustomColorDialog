@@ -76,7 +76,7 @@ namespace AlphaSliderControl
 		/// </summary>
 		private void InitializeComponent()
 		{
-            this.SuspendLayout();
+            //this.SuspendLayout();
 			// 
             // ctrl1DColorBar
 			// 
